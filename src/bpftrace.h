@@ -146,6 +146,8 @@ public:
   Dwarf *get_dwarf(const std::string &filename);
   Dwarf *get_dwarf(const ast::AttachPoint &attachpoint);
 
+  std::function<void(uint8_t*)> printf_callback_;
+
   std::string cmd_;
   bool finalize_ = false;
   // Global variables checking if an exit/usr1 signal was received
