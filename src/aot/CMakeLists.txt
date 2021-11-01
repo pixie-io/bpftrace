@@ -1,8 +1,13 @@
 add_library(aot aot.cpp)
 add_dependencies(aot parser)
+set_target_properties(aot PROPERTIES PUBLIC_HEADER "aot.h")
 target_include_directories(aot PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(aot PUBLIC ${CMAKE_BINARY_DIR})
 target_compile_definitions(aot PRIVATE ${BPFTRACE_FLAGS})
+
+install(TARGETS aot
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/aot)
 
 # Only build aotrt if supported bcc is used
 # (https://github.com/iovisor/bcc/commit/719191867a25ce07dc96f7faf9b8ccedadc7ec44)

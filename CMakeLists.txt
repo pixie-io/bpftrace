@@ -126,6 +126,11 @@ bison_target(bison_parser src/parser.yy ${CMAKE_BINARY_DIR}/parser.tab.cc VERBOS
 flex_target(flex_lexer src/lexer.l ${CMAKE_BINARY_DIR}/lex.yy.cc)
 add_flex_bison_dependency(flex_lexer bison_parser)
 add_library(parser ${BISON_bison_parser_OUTPUTS} ${FLEX_flex_lexer_OUTPUTS})
+set_target_properties(parser PROPERTIES PUBLIC_HEADER "${CMAKE_BINARY_DIR}/location.hh")
+
+install(TARGETS parser
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 target_compile_options(parser PRIVATE "-w")
 target_include_directories(parser PUBLIC src src/ast ${CMAKE_BINARY_DIR})
 
