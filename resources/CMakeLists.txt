@@ -1,5 +1,8 @@
 add_library(resources headers.cpp)
 
+install(TARGETS resources
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
 target_include_directories(resources PUBLIC ../src)
 
 function(embed_headers output)
