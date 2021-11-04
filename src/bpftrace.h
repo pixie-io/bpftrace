@@ -150,6 +150,8 @@ public:
   Dwarf *get_dwarf(const std::string &filename);
   Dwarf *get_dwarf(const ast::AttachPoint &attachpoint);
 
+  void poll_perf_events(bool drain = false);
+
   std::function<void(uint8_t*)> printf_callback_;
 
   std::string cmd_;
@@ -228,7 +230,6 @@ private:
       int pid,
       bool file_activation);
   int setup_perf_events();
-  void poll_perf_events(bool drain = false);
   int print_map_hist(IMap &map, uint32_t top, uint32_t div);
   int print_map_stats(IMap &map, uint32_t top, uint32_t div);
   static uint64_t read_address_from_output(std::string output);
