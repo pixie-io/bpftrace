@@ -87,6 +87,7 @@ private:
 };
 
 using BpfBytecode = std::unordered_map<std::string, std::vector<uint8_t>>;
+using BPFTraceMap = std::vector<std::pair<std::vector<uint8_t>, std::vector<uint8_t>>>;
 
 class BPFtrace
 {
@@ -115,6 +116,7 @@ public:
   int clear_map(IMap &map);
   int zero_map(IMap &map);
   int print_map(IMap &map, uint32_t top, uint32_t div);
+  BPFTraceMap get_map(const std::string& name);
   std::string get_stack(uint64_t stackidpid, bool ustack, StackType stack_type, int indent=0);
   std::string resolve_buf(char *buf, size_t size);
   std::string resolve_ksym(uintptr_t addr, bool show_offset=false);
@@ -234,6 +236,7 @@ private:
       int pid,
       bool file_activation);
   int setup_perf_events();
+  BPFTraceMap get_map(IMap &map);
   int print_map_hist(IMap &map, uint32_t top, uint32_t div);
   int print_map_stats(IMap &map, uint32_t top, uint32_t div);
   static uint64_t read_address_from_output(std::string output);
