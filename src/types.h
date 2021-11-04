@@ -103,6 +103,8 @@ public:
   {
   }
 
+  size_t size() const { return size_; }
+
   Type type;
   StackType stack_type;
   bool is_internal = false;
