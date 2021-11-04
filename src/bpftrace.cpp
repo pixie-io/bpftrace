@@ -1319,6 +1319,87 @@ void BPFtrace::poll_perf_events(bool drain)
   return;
 }
 
+BPFTraceMap BPFtrace::get_map(const std::string& name) {
+  const auto& mapmap = maps[name];
+  if (mapmap.has_value()) {
+    IMap& map = *mapmap.value();
+    return get_map(map);
+  }
+  return {};
+}
+
+BPFTraceMap BPFtrace::get_map(IMap &map) {
+  BPFTraceMap values_by_key;
+
+  uint32_t nvalues = map.is_per_cpu_type() ? ncpus_ : 1;
+  std::vector<uint8_t> old_key;
+  try
+  {
+    old_key = find_empty_key(map, map.key_.size());
+  }
+  catch (std::runtime_error &e)
+  {
+    LOG(ERROR) << "failed to get key for map '" << map.name_
+               << "': " << e.what();
+    return values_by_key;
+  }
+  auto key(old_key);
+
+  while (bpf_get_next_key(map.mapfd_, old_key.data(), key.data()) == 0)
+  {
+    int value_size = map.type_.GetSize();;
+    value_size *= nvalues;
+    auto value = std::vector<uint8_t>(value_size);
+    int err = bpf_lookup_elem(map.mapfd_, key.data(), value.data());
+    if (err == -1)
+    {
+      // key was removed by the eBPF program during bpf_get_next_key() and bpf_lookup_elem(),
+      // let's skip this key
+      continue;
+    }
+    else if (err)
+    {
+      LOG(ERROR) << "failed to look up elem: " << err;
+      return values_by_key;
+    }
+
+    values_by_key.push_back({key, value});
+
+    old_key = key;
+  }
+
+  if (map.type_.IsCountTy() || map.type_.IsSumTy() || map.type_.IsIntTy())
+  {
+    bool is_signed = map.type_.IsSigned();
+    std::sort(values_by_key.begin(), values_by_key.end(), [&](auto &a, auto &b)
+    {
+      if (is_signed)
+        return reduce_value<int64_t>(a.second, nvalues) < reduce_value<int64_t>(b.second, nvalues);
+      return reduce_value<uint64_t>(a.second, nvalues) < reduce_value<uint64_t>(b.second, nvalues);
+    });
+  }
+  else if (map.type_.IsMinTy())
+  {
+    std::sort(values_by_key.begin(), values_by_key.end(), [&](auto &a, auto &b)
+    {
+      return min_value(a.second, nvalues) < min_value(b.second, nvalues);
+    });
+  }
+  else if (map.type_.IsMaxTy())
+  {
+    std::sort(values_by_key.begin(), values_by_key.end(), [&](auto &a, auto &b)
+    {
+      return max_value(a.second, nvalues) < max_value(b.second, nvalues);
+    });
+  }
+  else
+  {
+    sort_by_key(map.key_.args_, values_by_key);
+  };
+
+  return values_by_key;
+}
+
 int BPFtrace::print_maps()
 {
   for (auto &mapmap : maps)
