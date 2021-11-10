@@ -1130,7 +1130,7 @@ int BPFtrace::prerun() const
   return 0;
 }
 
-int BPFtrace::run(BpfBytecode bytecode)
+int BPFtrace::deploy(BpfBytecode bytecode)
 {
   int err = prerun();
   if (err)
@@ -1236,17 +1236,11 @@ int BPFtrace::run(BpfBytecode bytecode)
   if (std::getenv("__BPFTRACE_NOTIFY_PROBES_ATTACHED"))
     std::cerr << "__BPFTRACE_NOTIFY_PROBES_ATTACHED" << std::endl;
 
-  if (has_iter_)
-  {
-    int err = run_iter();
-    if (err)
-      return err;
-  }
-  else
-  {
-    poll_perf_events();
-  }
+  return 0;
+}
 
+int BPFtrace::finalize()
+{
   attached_probes_.clear();
   // finalize_ and exitsig_recv should be false from now on otherwise
   // perf_event_printer() can ignore the END_trigger() events.
@@ -1260,6 +1254,32 @@ int BPFtrace::run(BpfBytecode bytecode)
 
   // Calls perf_reader_free() on all open perf buffers.
   open_perf_buffers_.clear();
+
+  return 0;
+}
+
+int BPFtrace::run(BpfBytecode bytecode)
+{
+  int err = 0;
+
+  err = deploy(std::move(bytecode));
+  if (err) 
+    return err;
+
+  if (has_iter_)
+  {
+    int err = run_iter();
+    if (err)
+      return err;
+  }
+  else
+  {
+    poll_perf_events();
+  }
+
+  err = finalize();
+  if (err)
+    return err;
 
   return 0;
 }

@@ -108,10 +108,13 @@ public:
   int num_probes() const;
   int prerun() const;
   int run(BpfBytecode bytecode);
+  int deploy(BpfBytecode bytecode);
+  int finalize();
   std::vector<std::unique_ptr<AttachedProbe>> attach_probe(
       Probe &probe,
       BpfBytecode &bytecode);
   int run_iter();
+  void poll_perf_events(bool drain = false, int timeout = 100);
   int print_maps();
   int clear_map(IMap &map);
   int zero_map(IMap &map);
@@ -154,8 +157,6 @@ public:
   bool has_btf_data() const;
   Dwarf *get_dwarf(const std::string &filename);
   Dwarf *get_dwarf(const ast::AttachPoint &attachpoint);
-
-  void poll_perf_events(bool drain = false, int timeout_ms = 100);
 
   std::function<void(uint8_t*)> printf_callback_;
 
