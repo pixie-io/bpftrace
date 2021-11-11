@@ -152,7 +152,7 @@ public:
   Dwarf *get_dwarf(const std::string &filename);
   Dwarf *get_dwarf(const ast::AttachPoint &attachpoint);
 
-  void poll_perf_events(bool drain = false);
+  void poll_perf_events(bool drain = false, int timeout_ms = 100);
 
   std::function<void(uint8_t*)> printf_callback_;
 
