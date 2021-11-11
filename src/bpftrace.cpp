@@ -1342,43 +1342,29 @@ void BPFtrace::poll_perf_events(bool drain, int timeout_ms)
   }
 
   auto events = std::vector<struct epoll_event>(online_cpus_);
-  while (true)
+
+  int ready = epoll_wait(epollfd_, events.data(), online_cpus_, timeout_ms);
+
+  // Return if either
+  //   * epoll_wait has encountered an error (eg signal delivery)
+  //   * There's no events left and we've been instructed to drain or
+  //     finalization has been requested through exit() builtin.
+  if (ready < 0 || (ready == 0 && (drain || finalize_)))
   {
-    int ready = epoll_wait(epollfd_, events.data(), online_cpus_, timeout_ms);
-    if (ready < 0 && errno == EINTR && !BPFtrace::exitsig_recv) {
-      // We received an interrupt not caused by SIGINT, skip and run again
-      continue;
-    }
-
-    // Return if either
-    //   * epoll_wait has encountered an error (eg signal delivery)
-    //   * There's no events left and we've been instructed to drain or
-    //     finalization has been requested through exit() builtin.
-    if (ready < 0 || (ready == 0 && (drain || finalize_)))
-    {
-      return;
-    }
-
-    for (int i=0; i<ready; i++)
-    {
-      perf_reader_event_read((perf_reader*)events[i].data.ptr);
-    }
-
-    // If we are tracing a specific pid and it has exited, we should exit
-    // as well b/c otherwise we'd be tracing nothing.
-    if ((procmon_ && !procmon_->is_alive()) || (child_ && !child_->is_alive()))
-    {
-      return;
-    }
-
-    // Print all maps if we received a SIGUSR1 signal
-    if (BPFtrace::sigusr1_recv)
-    {
-      BPFtrace::sigusr1_recv = false;
-      print_maps();
-    }
+    return;
   }
-  return;
+
+  for (int i=0; i<ready; i++)
+  {
+    perf_reader_event_read((perf_reader*)events[i].data.ptr);
+  }
+
+  // If we are tracing a specific pid and it has exited, we should exit
+  // as well b/c otherwise we'd be tracing nothing.
+  if ((procmon_ && !procmon_->is_alive()) || (child_ && !child_->is_alive()))
+  {
+    return;
+  }
 }
 
 BPFTraceMap BPFtrace::get_map(const std::string& name) {
