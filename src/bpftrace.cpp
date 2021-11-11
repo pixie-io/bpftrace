@@ -1305,12 +1305,9 @@ int BPFtrace::setup_perf_events()
   return 0;
 }
 
-void BPFtrace::poll_perf_events(bool drain)
+void BPFtrace::poll_perf_events(bool drain, int timeout_ms)
 {
-  const int timeout_ms = 100;
-
-  if (epollfd_ < 0)
-  {
+  if (epollfd_ < 0) {
     LOG(ERROR) << "Invalid epollfd " << epollfd_;
     return;
   }
