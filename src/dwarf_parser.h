@@ -9,7 +9,6 @@
 #ifdef HAVE_LIBDW
 #include <elfutils/libdwfl.h>
 #include <optional>
-#include <unordered_map>
 
 namespace bpftrace {
 
@@ -48,22 +47,13 @@ private:
 
 #else // HAVE_LIBDW
 
-#include "log.h"
-
 namespace bpftrace {
 
 class Dwarf
 {
 public:
   static std::unique_ptr<Dwarf> GetFromBinary(const std::string &file_path_
-                                              __attribute__((unused)))
-  {
-    static bool warned = false;
-    if (!warned)
-      LOG(WARNING) << "Cannot parse DWARF: libdw not available";
-    warned = true;
-    return nullptr;
-  }
+                                              __attribute__((unused)));
 
   std::vector<std::string> get_function_params(const std::string &function
                                                __attribute__((unused))) const

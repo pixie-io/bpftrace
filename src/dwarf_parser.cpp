@@ -1,8 +1,8 @@
 #include "dwarf_parser.h"
 
-#ifdef HAVE_LIBDW
-
 #include "log.h"
+
+#ifdef HAVE_LIBDW
 
 #include <dwarf.h>
 #include <elfutils/libdw.h>
@@ -212,6 +212,22 @@ ProbeArgs Dwarf::resolve_args(const std::string &function)
     result.emplace(dwarf_diename(&param_die), arg_type);
   }
   return result;
+}
+
+} // namespace bpftrace
+
+#else // HAVE_LIBDW
+
+namespace bpftrace {
+
+std::unique_ptr<Dwarf> Dwarf::GetFromBinary(const std::string &file_path_
+                                              __attribute__((unused)))
+{
+  static bool warned = false;
+  if (!warned)
+    LOG(WARNING) << "Cannot parse DWARF: libdw not available";
+  warned = true;
+  return nullptr;
 }
 
 } // namespace bpftrace
