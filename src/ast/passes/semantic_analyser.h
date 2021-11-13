@@ -73,6 +73,8 @@ public:
 
   int analyse();
 
+  std::string errors;
+
 private:
   Node *root_ = nullptr;
   BPFtrace &bpftrace_;
