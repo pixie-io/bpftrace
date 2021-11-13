@@ -2888,8 +2888,6 @@ void SemanticAnalyser::visit(Program &program)
 int SemanticAnalyser::analyse()
 {
   // Multiple passes to handle variables being used before they are defined
-  std::string errors;
-
   int num_passes = listing_ ? 1 : num_passes_;
   for (pass_ = 1; pass_ <= num_passes; pass_++)
   {
@@ -3341,7 +3339,7 @@ Pass CreateSemanticPass()
     auto semantics = SemanticAnalyser(&n, ctx.b, !ctx.b.cmd_.empty());
     int err = semantics.analyse();
     if (err)
-      return PassResult::Error("Semantic", err);
+      return PassResult::Error("Semantic", semantics.errors);
     return PassResult::Success();
   };
 
