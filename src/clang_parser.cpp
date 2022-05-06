@@ -708,7 +708,7 @@ void ClangParser::resolve_incomplete_types_from_btf(
  * their definitions but once he redefines any kernel type, he must provide all
  * necessary definitions.
  */
-bool ClangParser::parse(ast::Program *program, BPFtrace &bpftrace, std::vector<std::string> extra_flags)
+bool ClangParser::parse(ast::Program *program, BPFtrace &bpftrace, std::vector<std::string> extra_flags, std::vector<std::string> *error_messages)
 {
 #ifdef FUZZ
   StderrSilencer silencer;
@@ -810,10 +810,18 @@ bool ClangParser::parse(ast::Program *program, BPFtrace &bpftrace, std::vector<s
       LOG(ERROR) << "Include headers with missing type definitions or install "
                     "BTF information to your system.";
     }
+    if (error_messages != nullptr)
+    {
+      *error_messages = handler.get_error_messages();
+    }
     return false;
   }
 
   CXCursor cursor = handler.get_translation_unit_cursor();
+  if (error_messages != nullptr)
+  {
+    *error_messages = handler.get_error_messages();
+  }
   return visit_children(cursor, bpftrace);
 }
 
