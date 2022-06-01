@@ -386,7 +386,8 @@ ssize_t Dwarf::get_field_offset(Dwarf_Die &field_die)
 
 namespace bpftrace {
 
-std::unique_ptr<Dwarf> Dwarf::GetFromBinary(const std::string &file_path_
+std::unique_ptr<Dwarf> Dwarf::GetFromBinary(BPFtrace *bpftrace,
+                                            const std::string &file_path_
                                               __attribute__((unused)))
 {
   static bool warned = false;
