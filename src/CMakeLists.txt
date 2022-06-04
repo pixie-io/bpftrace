@@ -57,36 +57,38 @@ add_library(libbpftrace
 set_target_properties(libbpftrace PROPERTIES PREFIX "")
 set_target_properties(libbpftrace PROPERTIES PUBLIC_HEADER "bpftrace.h;driver.h;tracepoint_format_parser.h;libbpf/bpf.h;build_info.h;clang_parser.h;lockdown.h")
 
-add_executable(${BPFTRACE}
-  ${MAIN_SRC}
-)
-
-install(TARGETS ${BPFTRACE} DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS libbpftrace runtime
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-target_link_libraries(${BPFTRACE} libbpftrace)
+
+if(ENABLE_BPFTRACE_EXE)
+  add_executable(${BPFTRACE}
+    ${MAIN_SRC}
+  )
+
+  install(TARGETS ${BPFTRACE} DESTINATION ${CMAKE_INSTALL_BINDIR})
+  target_link_libraries(${BPFTRACE} libbpftrace)
 
 if (BUILD_FUZZ)
   target_compile_options(${BPFTRACE} PUBLIC "-DFUZZ")
-
   if(FUZZ_TARGET STREQUAL "semantic")
-      message(STATUS "Fuzzing seantic analyzer")
-      target_compile_options(${BPFTRACE} PUBLIC -DTEST_SEMANTIC)
+    message(STATUS "Fuzzing seantic analyzer")
+    target_compile_options(${BPFTRACE} PUBLIC -DTEST_SEMANTIC)
   elseif(FUZZ_TARGET STREQUAL "codegen")
-      message(STATUS "Fuzzing codegen")
+    message(STATUS "Fuzzing codegen")
   else()
-      message(FATAL_ERROR "Unsupported FUZZ_TARGET")
+    message(FATAL_ERROR "Unsupported FUZZ_TARGET")
   endif()
 
   if (USE_LIBFUZZER)
-      if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-          message(FATAL_ERROR "Use Clang for libfuzzer")
-      endif()
+    if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      message(FATAL_ERROR "Use Clang for libfuzzer")
+    endif()
       target_compile_options(${BPFTRACE} PUBLIC "-DLIBFUZZER")
       message(STATUS "Use libfuzzer")
+    endif()
   endif()
-endif()
+endif(ENABLE_BPFTRACE_EXE)
 
 # compile definitions
 
@@ -120,13 +122,15 @@ target_compile_definitions(runtime PRIVATE ${BPFTRACE_FLAGS})
 target_compile_definitions(libbpftrace PRIVATE ${BPFTRACE_FLAGS})
 
 # Linking
-if(STATIC_LINKING)
-  if(STATIC_LIBC)
-    target_link_options(${BPFTRACE} BEFORE PRIVATE "-static")
-  else()
-    target_link_options(${BPFTRACE} BEFORE PRIVATE "-static-libgcc" "-static-libstdc++")
-  endif(STATIC_LIBC)
-endif(STATIC_LINKING)
+if(ENABLE_BPFTRACE_EXE)
+  if(STATIC_LINKING)
+    if(STATIC_LIBC)
+      target_link_options(${BPFTRACE} BEFORE PRIVATE "-static")
+    else()
+      target_link_options(${BPFTRACE} BEFORE PRIVATE "-static-libgcc" "-static-libstdc++")
+    endif(STATIC_LIBC)
+  endif(STATIC_LINKING)
+endif(ENABLE_BPFTRACE_EXE)
 
 
 target_link_libraries(runtime ${LIBBPF_LIBRARIES})
@@ -200,20 +204,22 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_VERSION}
   target_link_libraries(libbpftrace "stdc++fs")
 endif()
 
-if (BUILD_ASAN)
-  target_compile_options(${BPFTRACE} PUBLIC "-fsanitize=address")
-  target_link_options(${BPFTRACE} PUBLIC "-fsanitize=address")
-endif()
-
-if (USE_LIBFUZZER)
+if(ENABLE_BPFTRACE_EXE)
   if (BUILD_ASAN)
-    target_compile_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer,address")
-    target_link_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer")
-  else()
-    target_compile_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer")
-    target_link_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer,address")
+    target_compile_options(${BPFTRACE} PUBLIC "-fsanitize=address")
+    target_link_options(${BPFTRACE} PUBLIC "-fsanitize=address")
   endif()
-endif()
+
+  if (USE_LIBFUZZER)
+    if (BUILD_ASAN)
+      target_compile_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer,address")
+      target_link_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer")
+    else()
+      target_compile_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer")
+      target_link_options(${BPFTRACE} PUBLIC "-fsanitize=fuzzer,address")
+    endif()
+  endif()
+endif(ENABLE_BPFTRACE_EXE)
 
 if (STATIC_LINKING)
   if(ANDROID)
