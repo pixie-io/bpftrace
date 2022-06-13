@@ -724,14 +724,14 @@ bool ClangParser::parse(ast::Program *program, BPFtrace &bpftrace, std::vector<s
       .Contents = input.c_str(),
       .Length = input.size(),
   });
-
-  args = { "-isystem", "/bpftrace/include" };
-  auto system_paths = system_include_paths();
-  for (auto &path : system_paths)
-  {
-    args.push_back("-isystem");
-    args.push_back(path.c_str());
-  }
+  
+  // clang-format off
+  args = {
+    "-isystem", "/usr/local/include",
+    "-isystem", "/bpftrace/include",
+    "-isystem", "/usr/include",
+  };
+  // clang-format on
   std::string arch_path = get_arch_include_path();
   args.push_back("-isystem");
   args.push_back(arch_path.c_str());
