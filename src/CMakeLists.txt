@@ -54,7 +54,7 @@ add_library(libbpftrace
 )
 # So it's not "liblibbpftrace"
 set_target_properties(libbpftrace PROPERTIES PREFIX "")
-set_target_properties(libbpftrace PROPERTIES PUBLIC_HEADER "bpftrace.h;driver.h;tracepoint_format_parser.h;libbpf/bpf.h;build_info.h;clang_parser.h;lockdown.h")
+set_target_properties(libbpftrace PROPERTIES PUBLIC_HEADER "bpftrace.h;driver.h;tracepoint_format_parser.h;libbpf/bpf.h;build_info.h;clang_parser.h;lockdown.h;pcap_writer.h")
 
 install(TARGETS libbpftrace runtime
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
