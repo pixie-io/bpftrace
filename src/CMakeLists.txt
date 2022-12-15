@@ -177,7 +177,7 @@ else()
   target_link_libraries(runtime ${LIBELF_LIBRARIES})
 endif(STATIC_BPF_BCC)
 
-if (LIBDW_FOUND)
+if (HAVE_LIBDW)
   if(STATIC_LINKING)
     find_package(LibBz2)
     add_library(LIBBZ2 STATIC IMPORTED)

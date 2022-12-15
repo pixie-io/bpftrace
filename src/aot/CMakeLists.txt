@@ -15,25 +15,25 @@ if(NOT LIBBCC_BPF_CONTAINS_RUNTIME)
   return()
 endif()
 
-add_executable(bpftrace-aotrt aot_main.cpp)
-target_link_libraries(bpftrace-aotrt aot runtime arch ast_defs cxxdemangler_stdlib)
-install(TARGETS bpftrace-aotrt DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-if(LIBPCAP_FOUND)
-  target_link_libraries(bpftrace-aotrt ${LIBPCAP_LIBRARIES})
-endif(LIBPCAP_FOUND)
-
-# Linking
-if(STATIC_LINKING)
-  if(STATIC_LIBC)
-    target_link_options(bpftrace-aotrt BEFORE PRIVATE "-static")
-  else()
-    target_link_options(bpftrace-aotrt  BEFORE PRIVATE "-static-libgcc" "-static-libstdc++")
-  endif(STATIC_LIBC)
-endif(STATIC_LINKING)
-
-# ASAN
-if(BUILD_ASAN)
-  target_compile_options(bpftrace-aotrt PUBLIC "-fsanitize=address")
-  target_link_options(bpftrace-aotrt PUBLIC "-fsanitize=address")
-endif()
+#add_executable(bpftrace-aotrt aot_main.cpp)
+#target_link_libraries(bpftrace-aotrt aot runtime arch ast_defs cxxdemangler_stdlib)
+#install(TARGETS bpftrace-aotrt DESTINATION ${CMAKE_INSTALL_BINDIR})
+#
+#if(LIBPCAP_FOUND)
+#  target_link_libraries(bpftrace-aotrt ${LIBPCAP_LIBRARIES})
+#endif(LIBPCAP_FOUND)
+#
+## Linking
+#if(STATIC_LINKING)
+#  if(STATIC_LIBC)
+#    target_link_options(bpftrace-aotrt BEFORE PRIVATE "-static")
+#  else()
+#    target_link_options(bpftrace-aotrt  BEFORE PRIVATE "-static-libgcc" "-static-libstdc++")
+#  endif(STATIC_LIBC)
+#endif(STATIC_LINKING)
+#
+## ASAN
+#if(BUILD_ASAN)
+#  target_compile_options(bpftrace-aotrt PUBLIC "-fsanitize=address")
+#  target_link_options(bpftrace-aotrt PUBLIC "-fsanitize=address")
+#endif()
